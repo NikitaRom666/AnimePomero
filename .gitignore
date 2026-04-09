@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Django
+*.sqlite3
+db.sqlite3
+*.sqlite3-journal
+
+# Environments
+.venv/
+env/
+venv/
+pip-wheel-metadata/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Logs and databases
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore nested project metadata
+practica/
