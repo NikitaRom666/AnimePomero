@@ -1,0 +1,111 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}
+    {% if object %}Редагування медіа{% else %}Додавання медіа{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card card-stat p-3 p-md-4">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row g-3">
+            <div class="col-12 col-md-8">
+                <label class="form-label" for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                {{ form.title }}
+                <div class="text-danger small">{{ form.title.errors }}</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="{{ form.media_type.id_for_label }}">{{ form.media_type.label }}</label>
+                {{ form.media_type }}
+                <div class="text-danger small">{{ form.media_type.errors }}</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.original_title.id_for_label }}">{{ form.original_title.label }}</label>
+                {{ form.original_title }}
+                <div class="text-danger small">{{ form.original_title.errors }}</div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="{{ form.release_year.id_for_label }}">{{ form.release_year.label }}</label>
+                {{ form.release_year }}
+                <div class="text-danger small">{{ form.release_year.errors }}</div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+                {{ form.country }}
+                <div class="text-danger small">{{ form.country.errors }}</div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                {{ form.description }}
+                <div class="text-danger small">{{ form.description.errors }}</div>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label" for="{{ form.season_count.id_for_label }}">{{ form.season_count.label }}</label>
+                {{ form.season_count }}
+                <div class="text-danger small">{{ form.season_count.errors }}</div>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label" for="{{ form.episode_count.id_for_label }}">{{ form.episode_count.label }}</label>
+                {{ form.episode_count }}
+                <div class="text-danger small">{{ form.episode_count.errors }}</div>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label" for="{{ form.episode_duration.id_for_label }}">{{ form.episode_duration.label }}</label>
+                {{ form.episode_duration }}
+                <div class="text-danger small">{{ form.episode_duration.errors }}</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.poster_url.id_for_label }}">{{ form.poster_url.label }}</label>
+                {{ form.poster_url }}
+                <div class="text-danger small">{{ form.poster_url.errors }}</div>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.studio.id_for_label }}">{{ form.studio.label }}</label>
+                {{ form.studio }}
+                <div class="text-danger small">{{ form.studio.errors }}</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.genres.id_for_label }}">{{ form.genres.label }}</label>
+                {{ form.genres }}
+                <div class="form-text">Утримуйте Ctrl для вибору кількох варіантів.</div>
+                <div class="text-danger small">{{ form.genres.errors }}</div>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.dubbing_languages.id_for_label }}">{{ form.dubbing_languages.label }}</label>
+                {{ form.dubbing_languages }}
+                <div class="form-text">Утримуйте Ctrl для вибору кількох варіантів.</div>
+                <div class="text-danger small">{{ form.dubbing_languages.errors }}</div>
+            </div>
+
+            <div class="col-12">
+                <div class="form-check">
+                    {{ form.is_published }}
+                    <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                        Опублікувати медіа
+                    </label>
+                </div>
+                <div class="text-danger small">{{ form.is_published.errors }}</div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Зберегти</button>
+            <a href="{% url 'admin_panel:media_list' %}" class="btn btn-outline-secondary">Скасувати</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

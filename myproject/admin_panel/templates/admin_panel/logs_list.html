@@ -1,0 +1,132 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Логи адмін-панелі{% endblock %}
+
+{% block content %}
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-4 col-xl-3">
+            <label class="form-label">Дія</label>
+            <select name="action" class="form-select">
+                <option value="">Усі</option>
+                {% for action in available_actions %}
+                    <option value="{{ action }}" {% if selected_action == action %}selected{% endif %}>{{ action }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 col-xl-3">
+            <label class="form-label">Тип сутності</label>
+            <select name="entity_type" class="form-select">
+                <option value="">Усі</option>
+                {% for item in available_entity_types %}
+                    <option value="{{ item }}" {% if selected_entity_type == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Фільтрувати</button>
+            <a href="{% url 'admin_panel:logs_list' %}" class="btn btn-outline-secondary">Скинути</a>
+        </div>
+    </form>
+</div>
+
+<div class="card card-stat p-3 p-md-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Адмін</th>
+                <th>Дія</th>
+                <th>Сутність</th>
+                <th>ID сутності</th>
+                <th>IP</th>
+                <th>Час</th>
+                <th class="text-end">JSON</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>{{ log.admin.username }}</td>
+                    <td>{{ log.action }}</td>
+                    <td>{{ log.entity_type }}</td>
+                    <td>{{ log.entity_id|default:'-' }}</td>
+                    <td>{{ log.ip_address|default:'-' }}</td>
+                    <td>{{ log.created_at|date:'d.m.Y H:i:s' }}</td>
+                    <td class="text-end">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary js-view-log"
+                            data-bs-toggle="modal"
+                            data-bs-target="#jsonModal"
+                            data-old="{{ log.old_data_pretty|escape }}"
+                            data-new="{{ log.new_data_pretty|escape }}"
+                        >
+                            Переглянути
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Логів не знайдено.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav>
+            <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Попередня</a>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Наступна</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="jsonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Дані змін</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12 col-lg-6">
+                        <h6>old_data</h6>
+                        <pre class="bg-light p-3 rounded border" id="oldDataContainer" style="max-height: 500px;"></pre>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <h6>new_data</h6>
+                        <pre class="bg-light p-3 rounded border" id="newDataContainer" style="max-height: 500px;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.querySelectorAll('.js-view-log').forEach((button) => {
+        button.addEventListener('click', () => {
+            document.getElementById('oldDataContainer').textContent = button.dataset.old || 'null';
+            document.getElementById('newDataContainer').textContent = button.dataset.new || 'null';
+        });
+    });
+</script>
+{% endblock %}

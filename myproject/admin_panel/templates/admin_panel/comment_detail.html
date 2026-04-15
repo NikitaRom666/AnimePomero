@@ -1,0 +1,52 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Деталі коментаря{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'admin_panel:comments_list' %}" class="btn btn-outline-secondary btn-sm">← До списку коментарів</a>
+</div>
+
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <h2 class="h6">Основний коментар</h2>
+    <dl class="row mb-3">
+        <dt class="col-sm-3">Користувач</dt>
+        <dd class="col-sm-9">{{ comment.user.username }}</dd>
+
+        <dt class="col-sm-3">Медіа</dt>
+        <dd class="col-sm-9">{{ comment.media.title }}</dd>
+
+        <dt class="col-sm-3">Створено</dt>
+        <dd class="col-sm-9">{{ comment.created_at|date:'d.m.Y H:i' }}</dd>
+
+        <dt class="col-sm-3">Статуси</dt>
+        <dd class="col-sm-9">
+            {% if comment.is_deleted %}
+                <span class="badge bg-danger-subtle text-danger">Видалено</span>
+            {% endif %}
+            {% if comment.is_censored %}
+                <span class="badge bg-warning-subtle text-warning">Цензуровано</span>
+            {% endif %}
+            {% if not comment.is_deleted and not comment.is_censored %}
+                <span class="badge bg-success-subtle text-success">Активний</span>
+            {% endif %}
+        </dd>
+    </dl>
+
+    <div class="border rounded p-3 bg-light-subtle">
+        {{ comment.content|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card card-stat p-3 p-md-4">
+    <h2 class="h6 mb-3">Відповіді ({{ comment.replies.count }})</h2>
+    {% for reply in comment.replies.all %}
+        <div class="border rounded p-3 mb-2">
+            <div class="small text-muted mb-1">{{ reply.user.username }} • {{ reply.created_at|date:'d.m.Y H:i' }}</div>
+            <div>{{ reply.content|linebreaksbr }}</div>
+        </div>
+    {% empty %}
+        <p class="text-muted mb-0">Відповідей ще немає.</p>
+    {% endfor %}
+</div>
+{% endblock %}

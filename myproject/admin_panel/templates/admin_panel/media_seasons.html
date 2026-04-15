@@ -1,0 +1,135 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Сезони та епізоди: {{ media.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'admin_panel:media_list' %}" class="btn btn-outline-secondary btn-sm">← До списку медіа</a>
+</div>
+
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <h2 class="h6 mb-3">Додати сезон</h2>
+    <form method="post" action="{% url 'admin_panel:season_create' media.id %}" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-12 col-md-2">
+            <label class="form-label" for="{{ season_create_form.season_number.id_for_label }}">Номер</label>
+            {{ season_create_form.season_number }}
+        </div>
+        <div class="col-12 col-md-2">
+            <label class="form-label" for="{{ season_create_form.year.id_for_label }}">Рік</label>
+            {{ season_create_form.year }}
+        </div>
+        <div class="col-12 col-md-5">
+            <label class="form-label" for="{{ season_create_form.title.id_for_label }}">Назва</label>
+            {{ season_create_form.title }}
+        </div>
+        <div class="col-12 col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Додати сезон</button>
+        </div>
+    </form>
+</div>
+
+{% for block in season_blocks %}
+    <div class="card card-stat p-3 p-md-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h6 mb-0">Сезон {{ block.season.season_number }}</h2>
+            <form method="post" action="{% url 'admin_panel:season_delete' media.id block.season.id %}" class="js-confirm" data-confirm="Видалити сезон {{ block.season.season_number }}?">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Видалити сезон</button>
+            </form>
+        </div>
+
+        <form method="post" action="{% url 'admin_panel:season_edit' media.id block.season.id %}" class="row g-2 align-items-end mb-4">
+            {% csrf_token %}
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="{{ block.edit_form.season_number.id_for_label }}">Номер</label>
+                {{ block.edit_form.season_number }}
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="{{ block.edit_form.year.id_for_label }}">Рік</label>
+                {{ block.edit_form.year }}
+            </div>
+            <div class="col-12 col-md-5">
+                <label class="form-label" for="{{ block.edit_form.title.id_for_label }}">Назва</label>
+                {{ block.edit_form.title }}
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-outline-primary w-100">Оновити сезон</button>
+            </div>
+        </form>
+
+        <h3 class="h6 mb-2">Епізоди</h3>
+        <div class="table-responsive mb-3">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 95px;">№</th>
+                    <th>Назва</th>
+                    <th style="width: 130px;">Тривалість (с)</th>
+                    <th style="width: 150px;">Дата виходу</th>
+                    <th>Опис</th>
+                    <th class="text-end">Дії</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in block.episodes %}
+                    <tr>
+                        <td colspan="6">
+                            <form method="post" action="{% url 'admin_panel:episode_edit' media.id block.season.id item.episode.id %}" class="row g-2 align-items-end">
+                                {% csrf_token %}
+                                <div class="col-6 col-md-1">{{ item.edit_form.episode_number }}</div>
+                                <div class="col-12 col-md-3">{{ item.edit_form.title }}</div>
+                                <div class="col-6 col-md-2">{{ item.edit_form.duration_sec }}</div>
+                                <div class="col-6 col-md-2">{{ item.edit_form.air_date }}</div>
+                                <div class="col-12 col-md-3">{{ item.edit_form.description }}</div>
+                                <div class="col-12 col-md-1 d-flex justify-content-end gap-1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Оновити</button>
+                                </div>
+                            </form>
+
+                            <form method="post" action="{% url 'admin_panel:episode_delete' media.id block.season.id item.episode.id %}" class="mt-2 d-flex justify-content-end js-confirm" data-confirm="Видалити епізод {{ item.episode.episode_number }}?">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Видалити</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Епізодів ще немає.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <form method="post" action="{% url 'admin_panel:episode_create' media.id block.season.id %}" class="row g-2 align-items-end border rounded p-3 bg-light-subtle">
+            {% csrf_token %}
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="{{ block.episode_create_form.episode_number.id_for_label }}">№ епізоду</label>
+                {{ block.episode_create_form.episode_number }}
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="{{ block.episode_create_form.title.id_for_label }}">Назва</label>
+                {{ block.episode_create_form.title }}
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="{{ block.episode_create_form.duration_sec.id_for_label }}">Тривалість</label>
+                {{ block.episode_create_form.duration_sec }}
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="{{ block.episode_create_form.air_date.id_for_label }}">Дата виходу</label>
+                {{ block.episode_create_form.air_date }}
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="{{ block.episode_create_form.description.id_for_label }}">Опис</label>
+                {{ block.episode_create_form.description }}
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-success">+</button>
+            </div>
+        </form>
+    </div>
+{% empty %}
+    <div class="alert alert-info">Сезонів поки немає.</div>
+{% endfor %}
+{% endblock %}

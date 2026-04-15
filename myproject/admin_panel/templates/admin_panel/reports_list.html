@@ -1,0 +1,102 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Скарги{% endblock %}
+
+{% block content %}
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-4 col-xl-3">
+            <label class="form-label">Статус</label>
+            <select name="status" class="form-select">
+                <option value="">Усі</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Фільтрувати</button>
+            <a href="{% url 'admin_panel:reports_list' %}" class="btn btn-outline-secondary">Скинути</a>
+        </div>
+    </form>
+</div>
+
+<div class="card card-stat p-3 p-md-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Хто поскаржився</th>
+                <th>Причина</th>
+                <th>Статус</th>
+                <th>Ціль</th>
+                <th>Створено</th>
+                <th class="text-end">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for report in reports %}
+                <tr>
+                    <td>{{ report.reporter.username }}</td>
+                    <td>{{ report.get_reason_display }}</td>
+                    <td>{{ report.get_status_display }}</td>
+                    <td>
+                        {% if report.media %}
+                            Медіа: {{ report.media.title }}
+                        {% elif report.comment %}
+                            Коментар #{{ report.comment.id }}
+                        {% elif report.target_user %}
+                            Користувач: {{ report.target_user.username }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ report.created_at|date:'d.m.Y H:i' }}</td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                            <form method="post" action="{% url 'admin_panel:report_action' report.id 'reviewed' %}" class="d-inline js-confirm" data-confirm="Позначити скаргу як переглянуту?">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Переглянуто</button>
+                            </form>
+                            <form method="post" action="{% url 'admin_panel:report_action' report.id 'dismissed' %}" class="d-inline js-confirm" data-confirm="Відхилити скаргу?">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Відхилити</button>
+                            </form>
+                            <a href="{% url 'admin_panel:report_detail' report.id %}" class="btn btn-sm btn-outline-success">Деталі</a>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Скарг не знайдено.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav>
+            <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Попередня</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Наступна</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

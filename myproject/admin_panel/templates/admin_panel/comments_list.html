@@ -1,0 +1,124 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Модерація коментарів{% endblock %}
+
+{% block content %}
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-4 col-xl-3">
+            <label class="form-label">Медіа</label>
+            <select name="media" class="form-select">
+                <option value="">Усе</option>
+                {% for media in media_list %}
+                    <option value="{{ media.id }}" {% if selected_media == media.id|stringformat:'s' %}selected{% endif %}>{{ media.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <label class="form-label">Видалено</label>
+            <select name="is_deleted" class="form-select">
+                <option value="">Усі</option>
+                <option value="true" {% if selected_is_deleted == 'true' %}selected{% endif %}>Так</option>
+                <option value="false" {% if selected_is_deleted == 'false' %}selected{% endif %}>Ні</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <label class="form-label">Цензура</label>
+            <select name="is_censored" class="form-select">
+                <option value="">Усі</option>
+                <option value="true" {% if selected_is_censored == 'true' %}selected{% endif %}>Так</option>
+                <option value="false" {% if selected_is_censored == 'false' %}selected{% endif %}>Ні</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Фільтрувати</button>
+            <a href="{% url 'admin_panel:comments_list' %}" class="btn btn-outline-secondary">Скинути</a>
+        </div>
+    </form>
+</div>
+
+<div class="card card-stat p-3 p-md-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Користувач</th>
+                <th>Медіа</th>
+                <th>Коментар</th>
+                <th>Створено</th>
+                <th>Видалено</th>
+                <th>Цензура</th>
+                <th class="text-end">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for comment in comments %}
+                <tr>
+                    <td>{{ comment.user.username }}</td>
+                    <td>{{ comment.media.title }}</td>
+                    <td>{{ comment.content|truncatechars:90 }}</td>
+                    <td>{{ comment.created_at|date:'d.m.Y H:i' }}</td>
+                    <td>
+                        {% if comment.is_deleted %}
+                            <span class="badge bg-danger-subtle text-danger">Так</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark">Ні</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if comment.is_censored %}
+                            <span class="badge bg-warning-subtle text-warning">Так</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark">Ні</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                            <a href="{% url 'admin_panel:comment_detail' comment.id %}" class="btn btn-sm btn-outline-secondary">Переглянути</a>
+
+                            <form method="post" action="{% url 'admin_panel:comment_soft_delete' comment.id %}" class="d-inline js-confirm" data-confirm="Позначити коментар як видалений?">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" {% if comment.is_deleted %}disabled{% endif %}>Видалити</button>
+                            </form>
+
+                            <form method="post" action="{% url 'admin_panel:comment_censor' comment.id %}" class="d-inline js-confirm" data-confirm="Зацензурувати коментар?">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-warning" {% if comment.is_censored %}disabled{% endif %}>Цензурувати</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Коментарів не знайдено.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav>
+            <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Попередня</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Наступна</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

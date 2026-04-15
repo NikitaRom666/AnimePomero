@@ -1,0 +1,133 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Керування користувачами{% endblock %}
+
+{% block content %}
+<div class="card card-stat p-3 p-md-4 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-5 col-xl-4">
+            <label class="form-label">Пошук (логін/email)</label>
+            <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Пошук...">
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <label class="form-label">Роль</label>
+            <select name="role" class="form-select">
+                <option value="">Усі</option>
+                {% for code, label in role_choices %}
+                    <option value="{{ code }}" {% if selected_role == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <label class="form-label">Блокування</label>
+            <select name="is_banned" class="form-select">
+                <option value="">Усі</option>
+                <option value="true" {% if selected_is_banned == 'true' %}selected{% endif %}>Заблоковані</option>
+                <option value="false" {% if selected_is_banned == 'false' %}selected{% endif %}>Активні</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Фільтрувати</button>
+            <a href="{% url 'admin_panel:users_list' %}" class="btn btn-outline-secondary">Скинути</a>
+        </div>
+    </form>
+</div>
+
+<div class="card card-stat p-3 p-md-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Логін</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Статус</th>
+                <th>Дата реєстрації</th>
+                <th class="text-end">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user_obj in users %}
+                <tr>
+                    <td>{{ user_obj.username }}</td>
+                    <td>{{ user_obj.email|default:'-' }}</td>
+                    <td>{{ user_obj.get_role_display }}</td>
+                    <td>
+                        {% if user_obj.is_banned %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Заблоковано</span>
+                        {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Активний</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user_obj.date_joined|date:'d.m.Y H:i' }}</td>
+                    <td class="text-end">
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            {% if request.user.role == 'admin' %}
+                                <form method="post" action="{% url 'admin_panel:user_role_update' user_obj.id %}" class="d-flex gap-1 flex-wrap justify-content-end">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <select name="role_{{ user_obj.id }}-role" class="form-select form-select-sm" style="min-width: 150px;">
+                                        {% for code, label in role_choices %}
+                                            <option value="{{ code }}" {% if user_obj.role == code %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Змінити роль</button>
+                                </form>
+                            {% endif %}
+
+                            {% if not user_obj.is_banned %}
+                                <form method="post" action="{% url 'admin_panel:user_ban' user_obj.id %}" class="d-flex gap-1 flex-wrap justify-content-end js-confirm" data-confirm="Підтвердити блокування користувача {{ user_obj.username }}?">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="datetime-local" name="ban_{{ user_obj.id }}-banned_until" class="form-control form-control-sm" style="max-width: 190px;" value="{{ user_obj.banned_until|date:'Y-m-d\\TH:i' }}">
+                                    <input type="text" name="ban_{{ user_obj.id }}-ban_reason" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Причина" value="{{ user_obj.ban_reason|default:'' }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Заблокувати</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{% url 'admin_panel:user_unban' user_obj.id %}" class="js-confirm" data-confirm="Розблокувати користувача {{ user_obj.username }}?">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Розблокувати</button>
+                                </form>
+                            {% endif %}
+
+                            {% if request.user.role == 'admin' %}
+                                <form method="post" action="{% url 'admin_panel:user_delete' user_obj.id %}" class="js-confirm" data-confirm="Видалити користувача {{ user_obj.username }} назавжди?">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Видалити</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Користувачів не знайдено.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav>
+            <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Попередня</a>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Наступна</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

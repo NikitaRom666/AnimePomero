@@ -1,0 +1,104 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Деталі скарги #{{ report.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'admin_panel:reports_list' %}" class="btn btn-outline-secondary btn-sm">← До списку скарг</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-7">
+        <div class="card card-stat p-3 p-md-4 h-100">
+            <h2 class="h6 mb-3">Інформація про скаргу</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Автор скарги</dt>
+                <dd class="col-sm-8">{{ report.reporter.username }}</dd>
+
+                <dt class="col-sm-4">Причина</dt>
+                <dd class="col-sm-8">{{ report.get_reason_display }}</dd>
+
+                <dt class="col-sm-4">Поточний статус</dt>
+                <dd class="col-sm-8">{{ report.get_status_display }}</dd>
+
+                <dt class="col-sm-4">Опис</dt>
+                <dd class="col-sm-8">{{ report.description|default:'-' }}</dd>
+
+                <dt class="col-sm-4">Ціль</dt>
+                <dd class="col-sm-8">
+                    {% if report.media %}
+                        Медіа: {{ report.media.title }}
+                    {% elif report.comment %}
+                        Коментар #{{ report.comment.id }} ({{ report.comment.user.username }})
+                    {% elif report.target_user %}
+                        Користувач: {{ report.target_user.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Створено</dt>
+                <dd class="col-sm-8">{{ report.created_at|date:'d.m.Y H:i' }}</dd>
+
+                <dt class="col-sm-4">Вирішив</dt>
+                <dd class="col-sm-8">
+                    {% if report.resolved_by %}
+                        {{ report.resolved_by.username }} ({{ report.resolved_at|date:'d.m.Y H:i' }})
+                    {% else %}
+                        -
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card card-stat p-3 p-md-4 mb-3">
+            <h2 class="h6 mb-3">Швидкі дії</h2>
+            <div class="d-flex gap-2 flex-wrap">
+                <form method="post" action="{% url 'admin_panel:report_action' report.id 'reviewed' %}" class="js-confirm" data-confirm="Позначити скаргу як переглянуту?">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-primary">Позначити як переглянуто</button>
+                </form>
+
+                <form method="post" action="{% url 'admin_panel:report_action' report.id 'dismissed' %}" class="js-confirm" data-confirm="Відхилити скаргу?">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary">Відхилити</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card card-stat p-3 p-md-4">
+            <h2 class="h6 mb-3">Вирішити скаргу</h2>
+            <form method="post" action="{% url 'admin_panel:report_action' report.id 'resolved' %}" class="js-confirm" data-confirm="Вирішити скаргу з обраними діями?">
+                {% csrf_token %}
+                {{ resolve_form.status }}
+
+                <div class="form-check mb-2">
+                    {{ resolve_form.ban_target_user }}
+                    <label class="form-check-label" for="{{ resolve_form.ban_target_user.id_for_label }}">{{ resolve_form.ban_target_user.label }}</label>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label" for="{{ resolve_form.banned_until.id_for_label }}">{{ resolve_form.banned_until.label }}</label>
+                    {{ resolve_form.banned_until }}
+                    <div class="text-danger small">{{ resolve_form.banned_until.errors }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="{{ resolve_form.ban_reason.id_for_label }}">{{ resolve_form.ban_reason.label }}</label>
+                    {{ resolve_form.ban_reason }}
+                    <div class="text-danger small">{{ resolve_form.ban_reason.errors }}</div>
+                </div>
+
+                <div class="form-check mb-3">
+                    {{ resolve_form.delete_target_comment }}
+                    <label class="form-check-label" for="{{ resolve_form.delete_target_comment.id_for_label }}">{{ resolve_form.delete_target_comment.label }}</label>
+                </div>
+
+                <button type="submit" class="btn btn-success">Вирішити скаргу</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

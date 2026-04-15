@@ -1,0 +1,108 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block page_title %}Дашборд{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-stat p-3">
+            <div class="text-muted small">Користувачі</div>
+            <div class="display-6 fw-semibold">{{ total_users }}</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-stat p-3">
+            <div class="text-muted small">Медіа</div>
+            <div class="display-6 fw-semibold">{{ total_media }}</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-stat p-3">
+            <div class="text-muted small">Коментарі</div>
+            <div class="display-6 fw-semibold">{{ total_comments }}</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-stat p-3">
+            <div class="text-muted small">Скарги на розгляді</div>
+            <div class="display-6 fw-semibold text-danger">{{ pending_reports }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="card card-stat p-3 p-md-4">
+            <h2 class="h6 mb-3">Нові реєстрації користувачів (30 днів)</h2>
+            <canvas id="registrationsChart" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card card-stat p-3 p-md-4 h-100">
+            <h2 class="h6 mb-3">Топ 5 медіа за переглядами</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Назва</th>
+                        <th>Тип</th>
+                        <th class="text-end">Перегляди</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in top_media %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.get_media_type_display }}</td>
+                            <td class="text-end fw-semibold">{{ item.views_count }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-muted">Дані відсутні.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+    const labels = {{ registration_labels_json|safe }};
+    const data = {{ registration_data_json|safe }};
+
+    new Chart(document.getElementById('registrationsChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Нові користувачі',
+                data: data,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.18)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

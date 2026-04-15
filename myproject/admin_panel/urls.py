@@ -1,0 +1,85 @@
+from django.contrib.auth.views import LogoutView
+from django.urls import path
+
+from admin_panel.views import (
+    AdminLogListView,
+    AnalyticsView,
+    CommentCensorView,
+    CommentDetailView,
+    CommentListView,
+    CommentSoftDeleteView,
+    DashboardView,
+    EpisodeCreateView,
+    EpisodeDeleteView,
+    EpisodeUpdateView,
+    MediaCreateView,
+    MediaDeleteView,
+    MediaListView,
+    MediaSeasonsView,
+    MediaUpdateView,
+    ReportActionView,
+    ReportDetailView,
+    ReportListView,
+    SeasonCreateView,
+    SeasonDeleteView,
+    SeasonUpdateView,
+    UserBanView,
+    UserDeleteView,
+    UserListView,
+    UserRoleUpdateView,
+    UserUnbanView,
+)
+from admin_panel.views.dashboard import AdminPanelLoginView
+
+app_name = "admin_panel"
+
+urlpatterns = [
+    path("login/", AdminPanelLoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(next_page="admin_panel:login"), name="logout"),
+    path("", DashboardView.as_view(), name="dashboard"),
+    path("media/", MediaListView.as_view(), name="media_list"),
+    path("media/create/", MediaCreateView.as_view(), name="media_create"),
+    path("media/<int:pk>/edit/", MediaUpdateView.as_view(), name="media_edit"),
+    path("media/<int:pk>/delete/", MediaDeleteView.as_view(), name="media_delete"),
+    path("media/<int:media_id>/seasons/", MediaSeasonsView.as_view(), name="media_seasons"),
+    path("media/<int:media_id>/seasons/create/", SeasonCreateView.as_view(), name="season_create"),
+    path(
+        "media/<int:media_id>/seasons/<int:season_id>/edit/",
+        SeasonUpdateView.as_view(),
+        name="season_edit",
+    ),
+    path(
+        "media/<int:media_id>/seasons/<int:season_id>/delete/",
+        SeasonDeleteView.as_view(),
+        name="season_delete",
+    ),
+    path(
+        "media/<int:media_id>/seasons/<int:season_id>/episodes/create/",
+        EpisodeCreateView.as_view(),
+        name="episode_create",
+    ),
+    path(
+        "media/<int:media_id>/seasons/<int:season_id>/episodes/<int:episode_id>/edit/",
+        EpisodeUpdateView.as_view(),
+        name="episode_edit",
+    ),
+    path(
+        "media/<int:media_id>/seasons/<int:season_id>/episodes/<int:episode_id>/delete/",
+        EpisodeDeleteView.as_view(),
+        name="episode_delete",
+    ),
+    path("users/", UserListView.as_view(), name="users_list"),
+    path("users/<int:user_id>/role/", UserRoleUpdateView.as_view(), name="user_role_update"),
+    path("users/<int:user_id>/ban/", UserBanView.as_view(), name="user_ban"),
+    path("users/<int:user_id>/unban/", UserUnbanView.as_view(), name="user_unban"),
+    path("users/<int:user_id>/delete/", UserDeleteView.as_view(), name="user_delete"),
+    path("comments/", CommentListView.as_view(), name="comments_list"),
+    path("comments/<int:pk>/", CommentDetailView.as_view(), name="comment_detail"),
+    path("comments/<int:pk>/soft-delete/", CommentSoftDeleteView.as_view(), name="comment_soft_delete"),
+    path("comments/<int:pk>/censor/", CommentCensorView.as_view(), name="comment_censor"),
+    path("reports/", ReportListView.as_view(), name="reports_list"),
+    path("reports/<int:pk>/", ReportDetailView.as_view(), name="report_detail"),
+    path("reports/<int:pk>/action/<str:action>/", ReportActionView.as_view(), name="report_action"),
+    path("analytics/", AnalyticsView.as_view(), name="analytics"),
+    path("logs/", AdminLogListView.as_view(), name="logs_list"),
+]
